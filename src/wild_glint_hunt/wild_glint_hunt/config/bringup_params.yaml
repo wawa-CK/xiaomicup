@@ -1,0 +1,53 @@
+vision_node:
+  ros__parameters:
+    use_rgb_camera: true
+    enable_fisheye_undistortion: false
+    image_topic: "/image_left"
+    camera_info_topic: "/image_left/camera_info"
+    vision_output_topic: "/vision/ball_array"
+    vision_tracking_topic: "/vision/tracked_balls"
+    danger_warning_topic: "/vision/danger_warning"
+    camera_calibration_is_placeholder: true
+
+path_planner_node:
+  ros__parameters:
+    backend: "real"
+    odom_topic: "/odom_out"
+    official_odom_topic: "odom_out"
+    official_imu_topic: "imu"
+    official_ultrasonic_topic: "ultrasonic_payload"
+    official_tof_topic: "head_tof_payload"
+    official_rear_tof_topic: "rear_tof_payload"
+    official_motion_servo_topic: "motion_servo_cmd"
+    official_walk_motion_id: 303
+    planner_command_topic: "planner/command"
+    planner_status_topic: "planner/status"
+    boundary_margin_m: 0.35
+    obstacle_margin_m: 0.20
+    obstacle_avoidance_radius_m: 0.42
+    obstacle_centers_x_m: [2.00, 3.20, 3.20]
+    obstacle_centers_y_m: [1.34, 1.34, 2.18]
+    target_use_visual_distance_updates: true
+    target_use_visual_yaw_updates: true
+
+state_machine_node:
+  ros__parameters:
+    backend: "real"
+    state_topic: "hunt/state"
+    state_status_topic: "/state_machine/status"
+    planner_command_topic: "planner/command"
+    planner_status_topic: "planner/status"
+    danger_warning_topic: "/vision/danger_warning"
+    sim_assume_strike_success: false
+    boundary_margin_m: 0.35
+    search_anchor_offset_m: 0.48
+    fixed_blue_indices: [2, 3, 7]
+    grid_x_centers_m: [-0.40, 0.80, 2.00, 3.20]
+    grid_y_centers_m: [1.34, 2.18, 3.02, 3.86]
+    official_odom_topic: "odom_out"
+    official_imu_topic: "imu"
+    official_ultrasonic_topic: "ultrasonic_payload"
+    official_tof_topic: "head_tof_payload"
+    official_rear_tof_topic: "rear_tof_payload"
+    official_motion_servo_topic: "motion_servo_cmd"
+    official_walk_motion_id: 303

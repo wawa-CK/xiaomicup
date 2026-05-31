@@ -1,0 +1,9 @@
+string id
+string label
+int32 pixel_x
+int32 pixel_y
+float32 distance_m
+float32 yaw_deg
+float32 confidence
+float32 radius_px
+bool safe_to_approach

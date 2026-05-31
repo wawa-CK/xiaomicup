@@ -1,0 +1,22 @@
+# Real-hardware topic mapping for this local cyberdog_ws checkout.
+# The official interface package available here is `protocol`.
+
+rgb_camera_topic: "/rgb_camera/image_raw"          # sensor_msgs/Image; TODO: confirm actual Cyberdog2 RGB topic name on robot.
+fisheye_camera_topic: "/image_left"                 # sensor_msgs/Image; legacy/official camera-stack candidate, verify if needed.
+rgb_camera_info_topic: "/rgb_camera/camera_info"   # sensor_msgs/CameraInfo; TODO: replace with real RGB camera_info topic.
+camera_info_topic: "/image_left/camera_info"        # sensor_msgs/CameraInfo if camera driver only exposes image_left.
+
+odom_topic: "/odom_out"                             # nav_msgs/Odometry, source: motion bridge/action stack.
+imu_topic: "/imu"                                   # sensor_msgs/Imu.
+ultrasonic_topic: "/ultrasonic_payload"             # sensor_msgs/Range, source: sensor_manager.
+head_tof_topic: "/head_tof_payload"                 # protocol/HeadTofPayload.
+rear_tof_topic: "/rear_tof_payload"                 # protocol/RearTofPayload.
+
+motion_servo_cmd_topic: "/motion_servo_cmd"         # protocol/MotionServoCmd, consumed by motion_manager.
+motion_status_topic: "/motion_status"               # protocol/MotionStatus.
+motion_servo_response_topic: "/motion_servo_response" # protocol/MotionServoResponse.
+motion_result_service: "/motion_result_cmd"         # protocol/srv/MotionResultCmd.
+
+lcm_command_channel: "robot_control_cmd"            # motion_action publishes protocol/lcm/robot_control_cmd_lcmt.
+lcm_response_channel: "robot_control_response"
+life_count_field: true                              # robot_control_cmd_lcmt includes life_count.

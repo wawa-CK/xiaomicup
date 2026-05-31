@@ -1,0 +1,28 @@
+field:
+  # Official race.world second stage: hanging_ball/hanging_ball2 local poses.
+  # The path uses inset approach points; do not drive directly onto yellow boundary.
+  size_m: [4.25, 3.65]
+  origin_m: [-0.70, 0.55]
+  start_m: [-0.45, 0.70]
+  exit_m: [-0.35, 3.85]
+  boundary_safe_margin_m: 0.35
+  obstacle_safe_margin_m: 0.20
+  grid:
+    rows: 4
+    cols: 4
+    x_centers_m: [-0.4, 0.8, 2.0, 3.2]
+    y_centers_m: [1.34, 2.18, 3.02, 3.86]
+  orange_balls_m:
+    - [3.2, 3.02]
+    - [2.0, 3.86]
+    - [0.8, 1.34]
+    - [-0.4, 2.18]
+  fixed_blue_balls_m:
+    - [3.2, 2.18]
+    - [2.0, 1.34]
+    - [3.2, 1.34]
+  # Rule labels use the entrance-side row as R4 and the exit-side row as R1.
+  # Fixed blue anchors are R4C4, R3C4, and R4C3. Orange layout is only for simulation image generation.
+  orange_constraints:
+    one_per_row: true
+    one_per_col: true

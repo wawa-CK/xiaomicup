@@ -1,0 +1,24 @@
+launch_nodes:
+  base_nodes:
+    - wild_glint_hunt_vision_cmd:
+        package: "wild_glint_hunt"
+        executable: "vision_node"
+        name: "vision_node"
+        output_screen: true
+    - wild_glint_hunt_path_planner_cmd:
+        package: "wild_glint_hunt"
+        executable: "path_planner_node"
+        name: "path_planner_node"
+        output_screen: true
+    - wild_glint_hunt_state_machine_cmd:
+        package: "wild_glint_hunt"
+        executable: "state_machine_node"
+        name: "state_machine_node"
+        output_screen: true
+  other_nodes:
+    - wild_glint_hunt_simulated_sensors_cmd:
+        package: "wild_glint_hunt"
+        executable: "simulated_sensors_node"
+        name: "simulated_sensors_node"
+        output_screen: true
+        condition: "simulation_only"

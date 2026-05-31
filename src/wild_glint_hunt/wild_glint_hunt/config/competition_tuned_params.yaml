@@ -1,0 +1,411 @@
+vision_node:
+  ros__parameters:
+    use_rgb_camera: true
+    enable_fisheye_undistortion: false
+    image_topic: "/rgb_camera/image_raw"  # Current live Gazebo RGB camera plugin topic in this simulator build.
+    camera_info_topic: "/rgb_camera/camera_info"
+    vision_output_topic: "/vision/ball_array"
+    vision_tracking_topic: "/vision/tracked_balls"
+    danger_warning_topic: "/vision/danger_warning"
+    undistorted_image_topic: "vision/undistorted_image"
+    vision_qos_depth: 10
+    camera_calibration_is_placeholder: true
+    image_width: 640
+    image_height: 480
+    rgb_camera_frame_id: "RGB_camera_link"
+    rgb_camera_translation_body_m: [0.27576, 0.0, 0.125794]  # From cyberdog_description/xacro/robot.xacro.
+    rgb_camera_rpy_body_rad: [0.0, 0.0, 0.0]  # Simulator URDF value; real camera pitch/extrinsics must be calibrated.
+    camera_height_m: 0.28  # Approx optical height in standing pose; TODO: validate from TF in Gazebo/real robot.
+    target_diameter_m: 0.20
+    horizontal_fov_deg: 70.0  # Typical RGB pinhole FOV placeholder; replace from /rgb_camera/camera_info.
+    camera_matrix: [525.0, 0.0, 320.0, 0.0, 525.0, 240.0, 0.0, 0.0, 1.0]  # TODO: replace with RGB K from camera_info.
+    distortion_coeffs: [0.0, 0.0, 0.0, 0.0]  # RGB path disables fisheye remap; replace if pinhole distortion is modeled.
+    boundary_alert_distance_m: 0.15
+    enable_boundary_danger_warning: false  # RGB front camera is not a reliable ground-plane line sensor; keep false in current Gazebo mode.
+    blue_danger_distance_m: 0.28
+    blue_danger_yaw_abs_deg: 10.0  # Only a very near, almost straight-ahead blue ball should interrupt the fixed corridor route.
+    enable_blue_danger_warning: false  # Gazebo RGB sees fixed blue balls; emergency stop/avoid prevents body contact near the start cluster.
+    no_detection_distance_m: 999.0
+    boundary_meters_per_pixel: 0.004  # TODO: calibrate from downward fisheye ground projection.
+    min_boundary_contour_area_px: 20.0
+    min_ball_area_px: 45.0  # Front RGB often sees partially occluded orange balls near the blue columns.
+    min_ball_radius_px: 3.0
+    orange_value_boost: 1.15
+    orange_saturation_boost: 1.10
+    orange_morph_close_iterations: 1
+    orange:
+      h_min: 5
+      s_min: 80
+      v_min: 60
+      h_max: 25
+      s_max: 255
+      v_max: 255
+    blue:
+      h_min: 90
+      s_min: 70
+      v_min: 80
+      h_max: 110
+      s_max: 255
+      v_max: 255
+    yellow:
+      h_min: 20
+      s_min: 80
+      v_min: 120
+      h_max: 40
+      s_max: 255
+      v_max: 255
+
+path_planner_node:
+  ros__parameters:
+    field_width_m: 4.20
+    field_height_m: 3.70
+    field_min_x_m: -0.70
+    field_min_y_m: 0.50
+    field_max_x_m: 3.55
+    field_max_y_m: 4.12
+    boundary_margin_m: 0.15
+    obstacle_margin_m: 0.20
+    obstacle_forbidden_radius_m: 0.24
+    obstacle_avoidance_radius_m: 0.38  # Fixed-route planning avoids the three rule-fixed blue balls without destroying the S-curve aisle geometry.
+    expand_all_blue_keepouts: false  # Do not inflate every non-orange Gazebo ball into a path obstacle; that breaks the required fixed route.
+    obstacle_centers_x_m: [3.20, 2.00, 3.20]  # Fixed blue balls: R3C4, R4C3, R4C4.
+    obstacle_centers_y_m: [2.18, 1.34, 1.34]
+    safety_prediction_dt_s: 0.40
+    minimum_target_distance_m: 0.10
+    odom_topic: "/odom"
+    official_odom_topic: "odom_out"  # Official protocol/nav_msgs odometry topic from motion_utils.
+    official_imu_topic: "imu"  # Official sensor_msgs/Imu topic from motion_bridge.
+    official_ultrasonic_topic: "ultrasonic_payload"  # Official sensor_msgs/Range topic from sensor_manager.
+    official_tof_topic: "head_tof_payload"  # Official protocol/HeadTofPayload topic.
+    official_rear_tof_topic: "rear_tof_payload"  # Official protocol/RearTofPayload topic.
+    official_motion_servo_topic: "motion_servo_cmd"  # Official protocol/MotionServoCmd topic consumed by motion_manager.
+    official_walk_motion_id: 303  # protocol/msg/MotionID.WALK_ADAPTIVELY.
+    sim_cmd_vel_topic: "/cmd_vel"  # Only used by RobotInterfaceSim and simulated_sensors_node.
+    enable_lcm_gamepad_backend: true  # Use Cyberdog simulator locomotion/gamepad LCM backend; this drives real Gazebo dynamics.
+    lcm_gamepad_channel: "gamepad_lcmt"
+    lcm_gamepad_linear_scale: 1.4  # Conservative joystick mapping; prevents pitching/falling on first route segment.
+    lcm_gamepad_angular_scale: 1.0  # Conservative yaw mapping; avoids roll-over during in-place facing.
+    lcm_gamepad_init_cycles: 100  # Give official locomotion more time to enter stable gait.
+    lcm_gamepad_init_rest_cycles: 40
+    lcm_gamepad_init_period_ms: 20
+    lcm_gamepad_retry_cycles: 60
+    stand_ready_height_threshold_m: 0.05  # Gazebo model base_link z is ~0.08 m when standing in this simulator build.
+    stand_ready_wait_ms: 3500
+    enable_apply_force_backend: false  # Disabled: cyberdog_gazebo ApplyForce crashes gzserver on invalid/lumped links.
+    enable_gazebo_wrench_backend: false  # Disabled by default: simulator dynamics must be driven by official locomotion backend.
+    gazebo_wrench_service: "/apply_link_wrench"
+    gazebo_wrench_link_name: "cyberdog::base_link"
+    gazebo_linear_wrench_gain_n_per_mps: 3000.0
+    gazebo_angular_wrench_gain_nm_per_radps: 800.0
+    gazebo_wrench_duration_s: 0.15
+    apply_force_topic: "/apply_force"  # Legacy plugin force bridge; keep disabled unless verified.
+    apply_force_link_name: "base_link"
+    linear_force_gain_n_per_mps: 1200.0  # Converts requested forward speed to Gazebo force.
+    angular_force_gain_n_per_radps: 500.0  # Converts requested yaw rate to tangential force.
+    turn_force_arm_m: 0.25  # Relative X lever arm for yaw torque on base_link.
+    apply_force_duration_s: 0.05  # Force hold duration; 0.05s matches 20 Hz command loop.
+    vision_input_topic: "/vision/ball_array"
+    target_output_topic: "planner/target"
+    planner_command_topic: "planner/command"
+    planner_status_topic: "planner/status"
+    cmd_vel_topic: "/cmd_vel"
+    planner_qos_depth: 10
+    planner_control_period_ms: 100
+    target_use_visual_distance_updates: false  # Simulation default: lock once from RGB, then integrate approach if target leaves FOV.
+    target_use_visual_yaw_updates: false  # Final approach uses /odom + mapped target cell; avoids RGB FOV loss spin.
+    target_update_max_yaw_delta_deg: 18.0  # Prevents switching to a different orange ball during approach.
+    target_update_max_distance_delta_m: 0.80
+    target_lost_timeout_s: 3.0  # Only used for pure visual targets; pose targets continue even if RGB temporarily loses view.
+    approach_far_speed_mps: 0.18
+    approach_near_speed_mps: 0.12
+    approach_slow_distance_m: 0.65
+    approach_stop_distance_m: 0.50
+    align_yaw_tolerance_deg: 15.0
+    align_tolerance_deg: 15.0
+    dynamic_strike_enabled: true
+    dynamic_strike_trigger_distance_m: 0.18
+    head_butt_speed_mps: 0.14
+    head_butt_duration_s: 0.45
+    strike_safe_forward_speed_mps: 0.10
+    strike_safe_duration_s: 0.40
+    strike_emergency_backoff_distance_m: 0.30
+    planner_angular_gain: 1.1
+    approach_max_angular_speed_radps: 0.16
+    waypoint_linear_speed_mps: 0.30
+    aisle_travel_speed: 0.30
+    waypoint_position_tolerance_m: 0.22
+    waypoint_yaw_gain: 0.65
+    waypoint_heading_align_threshold_deg: 18.0
+    waypoint_heading_slow_threshold_deg: 7.0
+    waypoint_rotate_only_threshold_deg: 55.0
+    waypoint_max_angular_speed_radps: 0.22
+    exit_linear_speed_mps: 0.15  # Slow down on final exit approach to avoid stepping on the yellow line.
+    low_height_stop_enabled: true
+    low_height_stop_threshold_m: 0.03  # /odom base z is ~0.084 m when standing in this simulator; lower values indicate real collapse.
+    boundary_recovery_speed_mps: 0.10  # If already outside the inner safe boundary, crawl toward field center instead of spinning in place.
+    boundary_recovery_enabled: false
+    boundary_recovery_trigger_margin_m: 0.10  # Start active recovery when body center is inside this distance to any field edge.
+    boundary_recovery_distance_m: 0.20  # Crawl distance toward the field center during one recovery cycle.
+    boundary_recovery_turn_tolerance_deg: 12.0
+    boundary_recovery_max_count: 3  # After repeated boundary hits, force a safe center waypoint.
+    boundary_force_center_x_m: 2.0
+    boundary_force_center_y_m: 2.0
+    approach_rotate_only_yaw_deg: 35.0
+    close_target_rotate_backoff_distance_m: 0.45  # Back away before large yaw correction near a ball; prevents body sweeping nearby blue balls.
+    close_target_backoff_speed_mps: -0.06
+    stuck_detection_time_s: 12.0
+    stuck_detection_distance_m: 0.10
+    stuck_recovery_distance_m: 0.30
+    stuck_recovery_angle_deg: 45.0
+    avoid_back_speed_mps: -0.10
+    avoid_turn_speed_radps: 0.32
+    avoid_back_duration_s: 1.2
+    avoid_turn_duration_s: 1.6
+
+state_machine_node:
+  ros__parameters:
+    backend: "sim"  # Use "real" only after filling real hardware mappings.
+    state_topic: "hunt/state"
+    state_status_topic: "/state_machine/status"
+    success_topic: "hunt/success"
+    success_message: "success"
+    planner_command_topic: "planner/command"
+    planner_status_topic: "planner/status"
+    vision_input_topic: "/vision/ball_array"
+    danger_warning_topic: "/vision/danger_warning"
+    required_ball_count: 4
+    max_strike_retries: 2
+    debug_verbose: false
+    task_total_timeout_s: 330.0  # End-to-end watchdog; on timeout abandon remaining balls and go to exit.
+    state_timeout_s: 60.0  # Per-state watchdog; skips/retries the current route phase instead of spinning forever.
+    route_phase_timeout_s: 120.0  # Official gait in Gazebo is slow; long aisle traversal must not be mistaken for a stuck phase.
+    route_aisle_endpoint_tolerance_m: 0.45
+    route_junction_stop_tolerance_m: 0.35
+    route_junction_overshoot_distance_m: 0.50
+    route_align_reissue_interval_s: 3.0
+    route_visual_align_boundary_margin_m: 0.45
+    post_strike_backoff_distance: 0.35
+    post_strike_inward_shift: 0.25
+    single_strike_timeout_s: 16.0
+    align_tolerance_deg: 15.0
+    dynamic_strike_enabled: true
+    strike_success_check_time_s: 1.0
+    strike_light_touch: false
+    route_mode: "fixed_s_curve"
+    route_forward_heading_deg: 0.0
+    route_start_turn_ccw_deg: 0.0  # Spawn yaw already points from the stone-road exit into stage 2; avoid a wasteful 360/large start spin.
+    route_columns_order: [4, 3, 2, 1]
+    route_expected_target_ids: ["R2C4", "R3C3", "R4C2", "R1C1"]  # Gazebo race.world orange layout; prevents fixed-route mode from striking blue cells when RGB association is ambiguous.
+    boundary_safe_distance_m: 0.15
+    obstacle_safe_distance_m: 0.20
+    emergency_obstacle_distance_m: 0.10
+    sim_assume_strike_success: false  # Require real RGB/pose-based strike verification; no synthetic success shortcut.
+    strike_verify_timeout_s: 1.0  # Light-touch mode: do not wait for large visible displacement.
+    strike_success_pixel_shift: 24.0
+    strike_success_distance_shift_m: 0.07
+    strike_recent_visual_timeout_s: 2.5  # Allow strike if the mapped orange target was confirmed very recently, even if the RGB target leaves FOV at close range.
+    strike_require_visual_confirmation: true  # Do not count a strike unless RGB confirms the orange target after the motion.
+    strike_accept_pose_contact_success: true  # Accept pose-based contact after real strike motion; prevents R1C1 from being marked failed after visible/Gazebo contact.
+    route_allow_pose_fallback_target: false  # Seeing no orange in a column must not create a fake fixed target.
+    strike_contact_distance_m: 0.32
+    strike_front_offset_m: 0.28
+    target_visible_timeout_s: 1.0
+    search_all_before_strike: false
+    sim_use_ground_truth_layout: false  # Must stay false for real RGB validation; never reconstruct hidden orange layout from simulation seed.
+    rolling_min_targets_to_execute: 1  # Execute as soon as one target is reliably associated to a safe non-blue cell.
+    rolling_plan_max_targets: 1  # Rolling execution mode: see one reliable orange target, strike one immediately.
+    rolling_search_timeout_s: 2.5  # Shorten search dwell so the robot can strike newly found targets immediately.
+    rolling_replan_cooldown_s: 2.0  # Avoid STOP/replan thrashing when new observations arrive quickly.
+    rolling_execute_single_visible_confidence: 0.88  # If a currently visible orange ball maps safely and confidently, execute immediately instead of waiting for a full batch.
+    rolling_execute_min_travel_m: 0.85  # Start striking after leaving the immediate start corner; blue danger handles the fixed-ball cluster.
+    min_search_scan_fraction_before_execute: 0.25  # Do a short initial scan/drive segment before interrupting search for targets.
+    target_observation_min_confidence: 0.60
+    target_observation_confirm_count: 1  # Clean Gazebo colors allow one high-confidence observation; avoids losing targets while escaping blue cluster.
+    target_observation_stale_timeout_s: 60.0
+    target_observation_max_distance_m: 8.0  # Gazebo RGB monocular radius is over-estimating range; keep fixed-route column detections instead of timing out.
+    target_observation_edge_margin_px: 20  # Ignore partial contours clipped at image edges.
+    target_observation_image_width_px: 640
+    target_association_max_yaw_deg: 6.0  # Tighten visual-to-grid association to reduce false orange cell assignments near fixed blue columns.
+    target_association_max_distance_error_m: 0.60
+    target_association_max_world_error_m: 0.55  # Associate each visible orange ball to the nearest feasible grid cell using reconstructed world position.
+    sim_random_seed: 2026
+    sim_randomize_balls: true
+    search_all_fallback_timeout_s: 6.0
+    execute_plan_standoff_m: 0.52
+    require_search_waypoints_before_targets: false
+    use_world_targets: false  # Fixed-route mode must not jump to global target shortcuts.
+    search_anchor_offset_m: 0.48  # Stand off from grid centers; prevents driving into ball columns.
+    blue_body_clearance_m: 0.52  # Minimum body-center path clearance from fixed blue ball centers.
+    strike_corridor_clearance_m: 0.48  # Body corridor clearance during final orange-ball head-butt.
+    target_blue_exclusion_radius_m: 0.60  # Never treat a visually associated cell this close to fixed blue as an orange target.
+    strike_lineup_distance_m: 0.45  # Add a pre-lineup point before final approach so the head, not side body, contacts the orange ball.
+    search_spin_pause_waypoint_count: 0  # First search waypoints stay near landmark-safe viewpoints instead of sweeping the whole field immediately.
+    search_waypoint_batch_size: 5  # Send only a short batch of search waypoints each time so rolling replanning can react sooner.
+    search_front_probe_enabled: true
+    search_front_probe_distance_m: 0.30
+    search_start_escape_enabled: true
+    search_start_escape_dx_m: -1.60
+    search_start_escape_dy_m: 0.10
+    search_start_corner_x_m: 2.35  # Consider the start corner cleared after the body center moves left of this X or above the Y threshold below.
+    search_start_corner_y_m: 2.05
+    search_secondary_escape_dx_m: -2.00  # Second escape waypoint: left-up from start, avoiding the R4C3/R4C4/R3C4 blue cluster.
+    search_secondary_escape_dy_m: 1.40
+    search_initial_scan_enabled: false
+    search_initial_scan_speed_radps: 0.35
+    search_initial_scan_duration_s: 4.5
+    route_column_visual_timeout_s: 3.0
+    scan_observation_window_s: 4.0
+    route_reacquire_retry_limit: 2
+    route_column_scan_offsets_deg: [0.0, -45.0, 45.0, -25.0, 25.0]  # Robust fixed-route scan; still uses dynamic strike to reduce final alignment time.
+    route_start_side_offset_m: 0.55  # Start escape first moves left of R4C3 before entering the R4C3/R4C4 blue-ball gap.
+    route_bottom_corridor_clearance_m: 0.50  # Keep the start bypass above the boundary safety layer while still below the R4 blue balls.
+    route_c4_retreat_enabled: true
+    route_c4_retreat_x_m: 0.95  # Cross the R1/R2 corridor left of C3 to reduce turn time and avoid R1C3/R2C3 brushing.
+    route_c4_retreat_y_m: 3.44
+    route_c3_retreat_enabled: true
+    route_c34_aisle_x_offset_m: 0.00  # C4 observation remains on the nominal aisle; ESCAPE_START uses a lower safe bypass before rejoining it.
+    route_c34_bypass_x_offset_m: 0.00  # Disabled for now; large bypasses touched R4C3 in Gazebo contact tests.
+    route_c34_rejoin_y_m: 2.60  # Rejoin the nominal C4 aisle only after clearing fixed blue R4C4/R3C4.
+    route_c23_aisle_x_offset_m: -0.30  # Shift the C2/C3 aisle toward C2; the geometric center let the rear hip brush fixed blue R4C3.
+    route_c3_aisle_exit_y_m: 2.60  # Stop the C3 aisle above R4C3; C3 is struck from a side lineup, then retreats to the lower safe corridor.
+    route_c3_retreat_x_m: 1.10  # Post-C3 downshift stays left of fixed blue R4C3 instead of below it.
+    route_c3_retreat_y_m: 1.04  # Keep the retreat point on the reachable lower corridor; 0.75 caused long boundary-limited transfer.
+    fixed_blue_indices: [7, 2, 3]
+    target_association_yaw_weight: 1.0
+    target_association_distance_weight: 0.35
+    target_association_history_bonus: 1.5
+    route_column_match_y_tolerance_m: 0.50
+    route_column_match_world_tolerance_m: 0.90
+    route_column_match_yaw_tolerance_deg: 60.0
+    world_target_x_m: [0.80, 2.00, 3.20, -0.40]  # Gazebo seed-2026 orange layout, ordered from safe start-side target to exit-side target.
+    world_target_y_m: [1.34, 3.86, 3.02, 2.18]
+    world_target_approach_x_m: [0.80, 2.00, 3.20, -0.15]
+    world_target_approach_y_m: [0.82, 3.34, 2.58, 2.18]
+    world_target_strike_yaw_deg: [90.0, 90.0, 90.0, 180.0]
+    world_target_strike_distance_m: 0.20
+    boundary_column_strike_distance_m: 0.35  # C4 is next to the yellow line; close enough for head contact while the body stays inside.
+    exit_intermediate_y_m: 3.20
+    stand_ready_height_threshold_m: 0.05  # Match Gazebo standing base height; 0.18 blocked all motion in simulation.
+    state_machine_period_ms: 200
+    state_machine_qos_depth: 10
+    cmd_vel_topic: "/cmd_vel"  # Simulation default only.
+    odom_topic: "/odom"
+    official_imu_topic: "imu"
+    official_ultrasonic_topic: "ultrasonic_payload"
+    official_tof_topic: "head_tof_payload"
+    official_rear_tof_topic: "rear_tof_payload"
+    official_motion_servo_topic: "motion_servo_cmd"
+    official_walk_motion_id: 303
+    sim_cmd_vel_topic: "/cmd_vel"
+    enable_lcm_gamepad_backend: true
+    lcm_gamepad_channel: "gamepad_lcmt"
+    lcm_gamepad_linear_scale: 1.4
+    lcm_gamepad_angular_scale: 1.0
+    lcm_gamepad_init_cycles: 100
+    lcm_gamepad_init_rest_cycles: 40
+    lcm_gamepad_init_period_ms: 20
+    enable_apply_force_backend: false
+    enable_gazebo_wrench_backend: false
+    gazebo_wrench_service: "/apply_link_wrench"
+    gazebo_wrench_link_name: "cyberdog::base_link"
+    gazebo_linear_wrench_gain_n_per_mps: 3000.0
+    gazebo_angular_wrench_gain_nm_per_radps: 800.0
+    gazebo_wrench_duration_s: 0.15
+    apply_force_topic: "/apply_force"
+    apply_force_link_name: "base_link"
+    linear_force_gain_n_per_mps: 1200.0
+    angular_force_gain_n_per_radps: 500.0
+    turn_force_arm_m: 0.25
+    apply_force_duration_s: 0.05
+    imu_topic: "/imu"
+    ultrasonic_topic: "/obstacle_detection"  # Simulation Range placeholder.
+    tof_topic: "/tof"  # Simulation Range placeholder.
+    robot_interface_qos_depth: 10
+    motion_command_rate_hz: 20.0
+    head_butt_speed_mps: 0.10
+    head_butt_duration_s: 0.30
+    strike_boundary_slow_margin_m: 0.40
+    strike_safe_forward_speed_mps: 0.10
+    strike_safe_duration_s: 0.40
+    strike_emergency_backoff_distance_m: 0.20
+    strike_emergency_backoff_speed_mps: 0.12
+    field_width_m: 4.20
+    field_height_m: 3.70
+    field_min_x_m: -0.70
+    field_min_y_m: 0.50
+    field_max_x_m: 3.55
+    field_max_y_m: 4.12
+    boundary_margin_m: 0.15
+    exit_x_m: -0.58  # Finish in front of R1C1: left of the ball and above it, still inside the yellow boundary.
+    exit_y_m: 4.00
+    exit_heading_deg: 90.0  # Face the third-stage entrance between the two yellow lines after reaching the finish point.
+    rear_leg_offset_m: 0.28
+    exit_clearance_m: 0.10
+    grid_x_centers_m: [-0.40, 0.80, 2.00, 3.20]  # Official 4x4 ball-column map; search uses offset approach points.
+    grid_y_centers_m: [1.34, 2.18, 3.02, 3.86]
+    real_body_state_topic: "odom_out"  # Local cyberdog_ws has no ception_msgs/BodyState; official odom is nav_msgs/Odometry.
+    real_imu_topic: "imu"
+    real_ultrasonic_topic: "ultrasonic_payload"
+    real_tof_topic: "head_tof_payload"
+    real_motion_command_topic: "motion_servo_cmd"  # protocol/MotionServoCmd, consumed by motion_manager.
+    motion_manager_mode_action: "checkout_mode"
+    motion_manager_gait_action: "checkout_gait"
+    motion_manager_order_action: "exe_monorder"
+    lcm_request_channel: "exec_request"
+    lcm_response_channel: "exec_response"
+    lcm_state_estimator_channel: "state_estimator"
+
+simulated_sensors_node:
+  ros__parameters:
+    sim_publish_images: false  # false = do not publish synthetic /image_left; Gazebo RGB camera plugin must provide real rendered images.
+    sim_image_topic: "/image_left"
+    sim_camera_info_topic: "/image_left/camera_info"
+    sim_rgb_image_topic: "/rgb_camera/image_raw"
+    sim_rgb_camera_info_topic: "/rgb_camera/camera_info"
+    sim_odom_topic: "/odom"
+    sim_body_state_topic: "/body_state"
+    sim_imu_topic: "/imu"
+    sim_obstacle_topic: "/obstacle_detection"
+    sim_tof_topic: "/tof"
+    sim_cmd_vel_topic: "/cmd_vel"
+    official_odom_topic: "odom_out"
+    official_ultrasonic_topic: "ultrasonic_payload"
+    official_tof_topic: "head_tof_payload"
+    official_rear_tof_topic: "rear_tof_payload"
+    sim_camera_frame_id: "RGB_camera_link"
+    sim_odom_frame_id: "odom"
+    sim_base_frame_id: "base_link"
+    sim_image_width: 640
+    sim_image_height: 480
+    sim_camera_rate_hz: 10.0
+    sim_state_rate_hz: 30.0
+    sim_sync_gazebo_model_pose: true  # /odom must follow the real Gazebo model pose; never use cmd_vel integration for validation.
+    sim_drive_gazebo_model_pose: false  # Must remain false for real-physics simulation; never teleport the robot during validation.
+    sim_publish_fake_imu: false  # Use Gazebo /imu if present; do not synthesize IMU by default.
+    sim_publish_fake_range: false  # No fake ultrasonic; enable only for isolated node tests.
+    sim_publish_fake_tof: false  # No fake TOF; enable only for isolated node tests.
+    sim_gazebo_pose_poll_period_s: 0.20
+    sim_gazebo_cli_pose_poll_period_s: 1.00
+    sim_gazebo_pose_drive_period_s: 0.10
+    sim_gazebo_model_name: "robot"
+    sim_gazebo_world_name: "earth"
+    sim_gazebo_pose_topic: "/gazebo/earth/pose/info"  # Gazebo true model pose stream; used only as simulation localization bridge.
+    sim_initial_x: 3.20  # Right-bottom second-stage entry, just after the stone road.
+    sim_initial_y: 0.70
+    sim_initial_yaw: 1.57
+    sim_model_z: 0.24
+    sim_safe_range_m: 0.50
+    sim_tof_range_m: 0.80
+    sim_wheel_base_m: 0.50
+    sim_yellow_border_px: 20
+    sim_ball_radius_px: 24
+    sim_randomize_balls: false
+    sim_random_seed: 2026
+    sim_grid_x_pixels: [110, 250, 390, 530]
+    sim_grid_y_pixels: [110, 200, 290, 380]
+    sim_orange_ball_pixels: [530, 110, 390, 200, 250, 290, 110, 380]
+    sim_blue_ball_pixels: [530, 290, 390, 380, 530, 380]
+    horizontal_fov_deg: 70.0
+    camera_matrix: [525.0, 0.0, 320.0, 0.0, 525.0, 240.0, 0.0, 0.0, 1.0]
+    distortion_coeffs: [0.0, 0.0, 0.0, 0.0]
+    sim_qos_depth: 10

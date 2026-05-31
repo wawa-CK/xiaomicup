@@ -1,0 +1,16 @@
+# Example configuration for step_height_controller
+depth_topic: /camera/depth/image_raw
+encoding: 32FC1
+roi:
+  x: 0.5   # center x (fraction of width)
+  y: 0.6   # center y (fraction of height)
+  w: 0.2   # width fraction
+  h: 0.25  # height fraction
+distance_threshold: 0.45  # meters, if closer => consider obstacle/step
+high_step: 0.07   # m, step when obstacle detected
+normal_step: 0.02 # m, default step height
+gait_id: 26       # gait id to use when publishing
+mode: 11          # locomotion mode
+vel_des: [0.0, 0.0, 0.0]
+lcm_url: "udpm://239.255.76.67:7671?ttl=255"
+publish_cooldown: 1.0  # seconds between successive publishes when toggling state

@@ -1,0 +1,29 @@
+# Official Cyberdog topic mapping scanned from the local cyberdog_ws repository.
+# Note: this checkout exposes the official ROS interface package as `protocol`.
+# The requested ception_msgs/motion_msgs packages are not present in this clone.
+
+# Camera streams. image_left/image_right are used by the official camera stack; fisheye side must
+# be verified on the target robot.
+rgb_camera_topic: "/rgb_camera/image_raw"          # sensor_msgs/Image; competition vision default in wild_glint_hunt. Simulator URDF has RGB_camera_link but no native Gazebo camera plugin.
+fisheye_camera_topic: "/image_left"                 # sensor_msgs/Image; legacy/official camera-stack candidate, verify on real robot.
+rgb_camera_info_topic: "/rgb_camera/camera_info"   # sensor_msgs/CameraInfo; simulated_sensors_node publishes this for tests.
+camera_info_topic: "/image_left/camera_info"        # sensor_msgs/CameraInfo; legacy/official candidate if RGB driver maps here.
+
+# Body/odometry. This repository does not contain ception_msgs/BodyState; motion_utils uses odom_out.
+body_state_topic: "/odom_out"                       # nav_msgs/Odometry, source: motion_action kBridgeOdomTopicName
+odom_topic: "/odom_out"                             # nav_msgs/Odometry
+imu_topic: "/imu"                                   # sensor_msgs/Imu, source: motion_bridge/imu_bridge.cpp
+
+# Range sensors. sensor_manager publishes ultrasonic_payload as sensor_msgs/Range.
+ultrasonic_topic: "/ultrasonic_payload"             # sensor_msgs/Range, source: sensors/sensor_manager.cpp
+head_tof_topic: "/head_tof_payload"                 # protocol/HeadTofPayload
+rear_tof_topic: "/rear_tof_payload"                 # protocol/RearTofPayload
+
+# Motion manager. motion_manager subscribes motion_servo_cmd and converts it to LCM robot_control_cmd.
+cmd_vel_topic: "/motion_servo_cmd"                  # protocol/MotionServoCmd
+motion_status_topic: "/motion_status"               # protocol/MotionStatus
+motion_servo_response_topic: "/motion_servo_response" # protocol/MotionServoResponse
+motion_result_service: "/motion_result_cmd"         # protocol/srv/MotionResultCmd
+motion_id_walk_adaptively: 303                       # protocol/msg/MotionID.WALK_ADAPTIVELY
+lcm_command_channel: "robot_control_cmd"            # source: motion_action/motion_macros.hpp
+lcm_response_channel: "robot_control_response"      # source: motion_action/motion_macros.hpp
